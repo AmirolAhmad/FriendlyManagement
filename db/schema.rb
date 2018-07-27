@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_07_27_035801) do
+ActiveRecord::Schema.define(version: 2018_07_27_074928) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -24,6 +24,16 @@ ActiveRecord::Schema.define(version: 2018_07_27_035801) do
     t.index ["user_id"], name: "index_friendships_on_user_id"
   end
 
+  create_table "subscribes", force: :cascade do |t|
+    t.bigint "user_id"
+    t.integer "target_id"
+    t.boolean "block", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["target_id"], name: "index_subscribes_on_target_id"
+    t.index ["user_id"], name: "index_subscribes_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.datetime "created_at", null: false
@@ -32,4 +42,6 @@ ActiveRecord::Schema.define(version: 2018_07_27_035801) do
 
   add_foreign_key "friendships", "users"
   add_foreign_key "friendships", "users", column: "friend_id"
+  add_foreign_key "subscribes", "users"
+  add_foreign_key "subscribes", "users", column: "target_id"
 end

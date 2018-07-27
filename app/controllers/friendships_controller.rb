@@ -1,6 +1,8 @@
 class FriendshipsController < ApplicationController
   before_action :set_friend, only: [:create]
 
+  # 1. As a user, I need an API to create a friend connection between two email addresses.
+  # POST http://localhost:3000/friendships
   def create
     if Friendship.where(user: @key, friend: @val).exists?
       render json: {message: "Relationship already establish"}
@@ -37,12 +39,16 @@ class FriendshipsController < ApplicationController
     end
   end
 
+  # 2. As a user, I need an API to retrieve the friends list for an email address.
+  # GET http://localhost:3000/friendlist?email=andy@example.com
   def list
     @user = User.find_by_email params[:email]
     @friendship = Friendship.where user: @user
     render json: {success: true, friends: @friendship.map {|f| f.friend.email}, count: @friendship.count}
   end
 
+  # 3. As a user, I need an API to retrieve the common friends list between two email addresses.
+  # GET http://localhost:3000/common?friends=["andy@example.com","andy1@example.com"]
   def common
     @params = params[:friends]
     a = JSON.parse(@params)
