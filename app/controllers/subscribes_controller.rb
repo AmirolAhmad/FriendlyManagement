@@ -38,6 +38,9 @@ class SubscribesController < ApplicationController
     if requestor && target
 
       list = Subscribe.where(user: requestor, target: target).first
+      if list.nil?
+        list = requestor.subscribes.create target_id: target.id
+      end
       list.update_attribute(:block, true)
       render json: { success: true }
     else
