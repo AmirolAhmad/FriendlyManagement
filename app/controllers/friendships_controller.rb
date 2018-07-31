@@ -4,35 +4,39 @@ class FriendshipsController < ApplicationController
   # 1. As a user, I need an API to create a friend connection between two email addresses.
   # POST http://localhost:3000/friendships
   def create
+    # byebug
+    user1 = User.where(email: @friends[0])
+    user2 = User.where(email: @friends[1])
+
     if Friendship.where(user: @key, friend: @val).exists?
       render json: {message: "Relationship already establish"}
     else
-      if User.where(email: @friends[0]).exists? && !User.where(email: @friends[1]).exists?
-        @user = @key
-        @friend = User.create email: @friends[1]
-        @user.friendships.create friend_id: @friend.id
+      if user1.exists? && !user2.exists?
+        user = @key
+        friend = User.create email: @friends[1]
+        user.friendships.create friend_id: friend.id
         render json: {success: true}
 
-      elsif !User.where(email: @friends[0]).exists? && User.where(email: @friends[1]).exists?
-        @user = User.create email: @friends[0]
-        @friend = @val
-        @user.friendships.create friend_id: @friend.id
+      elsif !user1.exists? && user2.exists?
+        friend = @val
+        user = User.create email: @friends[0]
+        user.friendships.create friend_id: friend.id
         render json: {success: true}
 
-      elsif User.where(email: @friends[0]).exists? && User.where(email: @friends[1]).exists?
+      elsif user1.exists? && user2.exists?
         if Friendship.where(user: @key, friend: @val).exists?
           render json: {message: "Relationship already establish"}
         else
-          @user = @key
-          @friend = @val
-          @user.friendships.create friend_id: @friend.id
+          user = @key
+          friend = @val
+          user.friendships.create friend_id: friend.id
           render json: {success: true}
         end
 
       else
-        @user = User.create email: @friends[0]
-        @friend = User.create email: @friends[1]
-        @user.friendships.create friend_id: @friend.id
+        user = User.create email: @friends[0]
+        friend = User.create email: @friends[1]
+        user.friendships.create friend_id: friend.id
 
         render json: {success: true}
       end
@@ -42,10 +46,10 @@ class FriendshipsController < ApplicationController
   # 2. As a user, I need an API to retrieve the friends list for an email address.
   # GET http://localhost:3000/friendlist?email=andy@example.com
   def list
-    @user = User.find_by_email params[:email]
-    if @user
-      @friendship = Friendship.where user: @user
-      render json: {success: true, friends: @friendship.map {|f| f.friend.email}, count: @friendship.count}
+    user = User.find_by_email params[:email]
+    if user
+      friendship = Friendship.where user: user
+      render json: {success: true, friends: friendship.map {|f| f.friend.email}, count: friendship.count}
     else
       render json: {message: "email not found"}
     end
@@ -56,26 +60,26 @@ class FriendshipsController < ApplicationController
   def common
     @params = params[:friends]
     a = JSON.parse(@params)
-    @key = User.find_by_email a[0]
-    @val = User.find_by_email a[1]
+    key = User.find_by_email a[0]
+    val = User.find_by_email a[1]
 
-    if @key && @val
+    if key && val
 
-      @friendship_key = Friendship.where user: @key
-      @friendship_val = Friendship.where user: @val
+      friendship_key = Friendship.where user: key
+      friendship_val = Friendship.where user: val
 
-      @lists_id = []
-      @friendship_key.each do |f|
-        @friendship_val.each do |g|
+      lists_id = []
+      friendship_key.each do |f|
+        friendship_val.each do |g|
           if f.friend_id == g.friend_id
-            @lists_id << g.friend_id
+            lists_id << g.friend_id
           end
         end
       end
 
-      @user = User.find @lists_id
+      user = User.find lists_id
 
-      render json: {success: true, friends: @user.map {|f| f.email}, count: @lists_id.count}
+      render json: {success: true, friends: user.map {|f| f.email}, count: lists_id.count}
     else
       render json: {message: "user email not found"}
     end
