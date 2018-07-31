@@ -1,45 +1,16 @@
 class FriendshipsController < ApplicationController
-  before_action :set_friend, only: [:create]
 
   # 1. As a user, I need an API to create a friend connection between two email addresses.
   # POST http://localhost:3000/friendships
   def create
-    # byebug
-    user1 = User.where(email: @friends[0])
-    user2 = User.where(email: @friends[1])
+    @user = User.find_or_create_by(email: params[:friends][0])
+    @friend = User.find_or_create_by(email: params[:friends][1])
 
-    if Friendship.where(user: @key, friend: @val).exists?
+    if Friendship.where(user: @user, friend: @friend).exists?
       render json: {message: "Relationship already establish"}
     else
-      if user1.exists? && !user2.exists?
-        user = @key
-        friend = User.create email: @friends[1]
-        user.friendships.create friend_id: friend.id
-        render json: {success: true}
-
-      elsif !user1.exists? && user2.exists?
-        friend = @val
-        user = User.create email: @friends[0]
-        user.friendships.create friend_id: friend.id
-        render json: {success: true}
-
-      elsif user1.exists? && user2.exists?
-        if Friendship.where(user: @key, friend: @val).exists?
-          render json: {message: "Relationship already establish"}
-        else
-          user = @key
-          friend = @val
-          user.friendships.create friend_id: friend.id
-          render json: {success: true}
-        end
-
-      else
-        user = User.create email: @friends[0]
-        friend = User.create email: @friends[1]
-        user.friendships.create friend_id: friend.id
-
-        render json: {success: true}
-      end
+      @user.friendships.create(friend_id: @friend.id)
+      render json: {success: true}
     end
   end
 
@@ -84,12 +55,4 @@ class FriendshipsController < ApplicationController
       render json: {message: "user email not found"}
     end
   end
-
-  private
-
-    def set_friend
-      @friends = params[:friends]
-      @key = User.find_by_email @friends[0]
-      @val = User.find_by_email @friends[1]
-    end
 end
