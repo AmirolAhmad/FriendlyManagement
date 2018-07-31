@@ -54,14 +54,25 @@ class SubscribesController < ApplicationController
     @text = params[:text]
     user = User.find_by_email params[:sender]
     if user
-      friendship = Subscribe.where target: user, block: false
 
+      friendship = Friendship.where user_id: user
+
+      # get the recipient
       recipients = []
       friendship.each do |f|
-        recipients << f.user.email
+        recipients << f.friend.email
       end
       mention = @text.scan(/\w+@\w+.\w+/i)
       recipients << mention.join(', ')
+
+      # get the block user
+      excludes = []
+      subscribes = Subscribe.where user: user, block: true
+      subscribes.each do |f|
+        excludes << f.target.email
+      end
+
+      recipients = recipients.reject { |i| excludes.include?(i) }
 
       render json: { success: true, recipients: recipients }
     else
