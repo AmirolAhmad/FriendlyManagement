@@ -1,5 +1,11 @@
 # Instructions
 
+## For demo purpose, you can use this url (replace with `http://localhost:3000/`)
+
+```
+https://friendly-management.herokuapp.com/
+```
+
 #### 1. As a user, I need an API to create a friend connection between two email addresses.
 
 ```
