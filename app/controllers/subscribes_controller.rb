@@ -4,20 +4,23 @@ class SubscribesController < ApplicationController
   # 4. As a user, I need an API to subscribe to updates from an email address.
   # GET http://localhost:3000/subscribe
   def create
-    if User.where(email: @requestor).exists? && !User.where(email: @target).exists?
+    requestor = User.where(email: @requestor)
+    target = User.where(email: @target)
+
+    if requestor.exists? && !target.exists?
       render json: { success: false, message: "Target Email not found" }
 
-    elsif !User.where(email: @requestor).exists? && User.where(email: @target).exists?
+    elsif !requestor.exists? && target.exists?
       render json: { success: false, message: "Requestor Email not found" }
 
-    elsif !User.where(email: @requestor).exists? && !User.where(email: @target).exists?
+    elsif !requestor.exists? && !target.exists?
       render json: { success: false, message: "Both Email not found" }
 
     else
       if @requestor != @target || @target != @requestor
-        @user = User.find_by_email @requestor
-        @aim = User.find_by_email @target
-        @user.subscribes.create target_id: @aim.id
+        user = User.find_by_email @requestor
+        aim = User.find_by_email @target
+        user.subscribes.create target_id: aim.id
         render json: { success: true }
       else
         render json: { success: false, message: "You can't subscribe yourself" }
@@ -29,13 +32,13 @@ class SubscribesController < ApplicationController
   # 5. As a user, I need an API to block updates from an email address.
   # PUT http://localhost:3000/block
   def block
-    @key = User.find_by_email @requestor
-    @val = User.find_by_email @target
+    requestor = User.find_by_email @requestor
+    target = User.find_by_email @target
 
-    if @key && @val
+    if requestor && target
 
-      @list = Subscribe.where(user: @key, target: @val).first
-      @list.update_attribute(:block, true)
+      list = Subscribe.where(user: requestor, target: target).first
+      list.update_attribute(:block, true)
       render json: { success: true }
     else
       render json: { success: false, message: "email not found" }
@@ -46,18 +49,18 @@ class SubscribesController < ApplicationController
   # POST http://localhost:3000/receive_update
   def receive_update
     @text = params[:text]
-    @user = User.find_by_email params[:sender]
-    if @user
-      @friendship = Subscribe.where target: @user, block: false
+    user = User.find_by_email params[:sender]
+    if user
+      friendship = Subscribe.where target: user, block: false
 
-      @recipients = []
-      @friendship.each do |f|
-        @recipients << f.user.email
+      recipients = []
+      friendship.each do |f|
+        recipients << f.user.email
       end
-      @mention = @text.scan(/\w+@\w+.\w+/i)
-      @recipients << @mention.join(', ')
+      mention = @text.scan(/\w+@\w+.\w+/i)
+      recipients << mention.join(', ')
 
-      render json: { success: true, recipients: @recipients }
+      render json: { success: true, recipients: recipients }
     else
       render json: { success: false, message: "Sender email not found" }
     end
