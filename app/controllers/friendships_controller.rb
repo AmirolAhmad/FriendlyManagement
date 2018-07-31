@@ -43,8 +43,12 @@ class FriendshipsController < ApplicationController
   # GET http://localhost:3000/friendlist?email=andy@example.com
   def list
     @user = User.find_by_email params[:email]
-    @friendship = Friendship.where user: @user
-    render json: {success: true, friends: @friendship.map {|f| f.friend.email}, count: @friendship.count}
+    if @user
+      @friendship = Friendship.where user: @user
+      render json: {success: true, friends: @friendship.map {|f| f.friend.email}, count: @friendship.count}
+    else
+      render json: {message: "email not found"}
+    end
   end
 
   # 3. As a user, I need an API to retrieve the common friends list between two email addresses.
@@ -55,21 +59,26 @@ class FriendshipsController < ApplicationController
     @key = User.find_by_email a[0]
     @val = User.find_by_email a[1]
 
-    @friendship_key = Friendship.where user: @key
-    @friendship_val = Friendship.where user: @val
+    if @key && @val
 
-    @lists_id = []
-    @friendship_key.each do |f|
-      @friendship_val.each do |g|
-        if f.friend_id == g.friend_id
-          @lists_id << g.friend_id
+      @friendship_key = Friendship.where user: @key
+      @friendship_val = Friendship.where user: @val
+
+      @lists_id = []
+      @friendship_key.each do |f|
+        @friendship_val.each do |g|
+          if f.friend_id == g.friend_id
+            @lists_id << g.friend_id
+          end
         end
       end
+
+      @user = User.find @lists_id
+
+      render json: {success: true, friends: @user.map {|f| f.email}, count: @lists_id.count}
+    else
+      render json: {message: "user email not found"}
     end
-
-    @user = User.find @lists_id
-
-    render json: {success: true, friends: @user.map {|f| f.email}, count: @lists_id.count}
   end
 
   private

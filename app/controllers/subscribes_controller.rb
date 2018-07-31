@@ -32,9 +32,14 @@ class SubscribesController < ApplicationController
     @key = User.find_by_email @requestor
     @val = User.find_by_email @target
 
-    @list = Subscribe.where(user: @key, target: @val).first
-    @list.update_attribute(:block, true)
-    render json: { success: true }
+    if @key && @val
+
+      @list = Subscribe.where(user: @key, target: @val).first
+      @list.update_attribute(:block, true)
+      render json: { success: true }
+    else
+      render json: { success: false, message: "email not found" }
+    end
   end
 
   # 6. As a user, I need an API to retrieve all email addresses that can receive updates from an email address.
@@ -42,16 +47,20 @@ class SubscribesController < ApplicationController
   def receive_update
     @text = params[:text]
     @user = User.find_by_email params[:sender]
-    @friendship = Subscribe.where target: @user, block: false
+    if @user
+      @friendship = Subscribe.where target: @user, block: false
 
-    @recipients = []
-    @friendship.each do |f|
-      @recipients << f.user.email
+      @recipients = []
+      @friendship.each do |f|
+        @recipients << f.user.email
+      end
+      @mention = @text.scan(/\w+@\w+.\w+/i)
+      @recipients << @mention.join(', ')
+
+      render json: { success: true, recipients: @recipients }
+    else
+      render json: { success: false, message: "Sender email not found" }
     end
-    @mention = @text.scan(/\w+@\w+.\w+/i)
-    @recipients << @mention.join(', ')
-    
-    render json: { success: true, recipients: @recipients }
   end
 
   private
