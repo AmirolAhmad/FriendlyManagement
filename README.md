@@ -6,6 +6,16 @@
 https://friendly-management.herokuapp.com/
 ```
 
+## Deployment
+
+##### Using Docker Compose
+```
+$ docker-compose run web rails new . --force --database=postgresql
+$ docker-compose build
+$ docker-compose run web rake db:create
+$ docker-compose up
+```
+
 #### 1. As a user, I need an API to create a friend connection between two email addresses.
 
 ```
