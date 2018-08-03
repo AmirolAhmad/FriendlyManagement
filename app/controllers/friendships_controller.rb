@@ -9,8 +9,12 @@ class FriendshipsController < ApplicationController
     if Friendship.where(user: @user, friend: @friend).exists?
       render json: {message: "Relationship already establish"}
     else
-      @user.friendships.create(friend_id: @friend.id)
-      render json: {success: true}
+      if @friend == @user
+        render json: {success: false, message: "you can\'t create relationship with yourself"}
+      else
+        @user.friendships.create(friend_id: @friend.id)
+        render json: {success: true}
+      end
     end
   end
 
