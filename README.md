@@ -1,4 +1,4 @@
-# Instructions
+# Instructions to setup FriendlyManagement
 
 ## For demo purpose, you can use this url (replace with `http://localhost:3000/`)
 
